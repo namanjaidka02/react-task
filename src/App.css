@@ -140,6 +140,10 @@ input {
   border-radius: 1rem;
 }
 
+.navbar-btn:hover {
+  cursor: pointer;
+}
+
 .nav {
   display: flex;
   justify-content: center;

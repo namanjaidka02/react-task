@@ -5,40 +5,60 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [users, setUsers] = useState([]);
-  const [isValid, setIsValid] = useState(true);
-  const [buttonClicked, setButtonClicked] = useState(false);
+  const [isValidEmail, setIsValidEmail] = useState(true);
+  const [isValidPassword, setIsValidPassword] = useState(true);
+  const [isSubmissionSuccessful, setisSubmissionSuccessful] = useState(false);
 
   useEffect(() => {
     const storedUsers = localStorage.getItem("users");
     if (storedUsers) setUsers(JSON.parse(storedUsers));
   }, []);
 
+  const validateEmail = (value) => {
+    const emailRegex = /^[^s@]+@[^s@]+.[^s@]+$/;
+    return emailRegex.test(value);
+  };
+
+  const validatePassword = (value) => {
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,20}$/;
+    return passwordRegex.test(value);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    const userId = users.length < 1 ? 0 : users[users.length - 1].id + 1;
-    const newUser = {
-      id: userId,
-      email: email,
-      password: password,
-    };
-    const newUsers = [...users, newUser];
+    const isEmailValid = validateEmail(email);
+    const isPasswordValid = validatePassword(password);
 
-    const hasUppercase = /[A-Z]/.test(password);
-    localStorage.setItem("users", JSON.stringify(newUsers));
-    setIsValid(hasUppercase);
-    setUsers(newUsers);
+    setIsValidEmail(isEmailValid);
+    setIsValidPassword(isPasswordValid);
 
-    if (password || email) {
-      setButtonClicked(true);
+    if (isEmailValid && isPasswordValid) {
+      const userId = users.length < 1 ? 0 : users[users.length - 1].id + 1;
+      const newUser = {
+        id: userId,
+        email: email,
+        password: password,
+      };
+      const newUsers = [...users, newUser];
+
+      localStorage.setItem("users", JSON.stringify(newUsers));
+
+      setUsers(newUsers);
+      setisSubmissionSuccessful(true);
+
+      if (!isEmailValid || !isPasswordValid) return;
+      setPassword("");
+      setEmail("");
     } else {
-      setButtonClicked(false);
+      alert("Please enter a valid Email and Password");
+      setisSubmissionSuccessful(false);
     }
-
-    setPassword("");
-    setEmail("");
   };
 
   const isDisabled = password.trim() === "" || email.trim() === "";
+  // !isValidPassword ||
+  // !isValidEmail;
 
   return (
     <div className="form-container">
@@ -52,6 +72,9 @@ const Login = () => {
             setEmail(e.target.value);
           }}
         />
+        {!isValidEmail && (
+          <p style={{ color: "red" }}>Please enter a valid email address</p>
+        )}
         <input
           type="password"
           placeholder="password"
@@ -61,16 +84,18 @@ const Login = () => {
             setPassword(e.target.value);
           }}
         />
-        {!isValid && (
+        {!isValidPassword && (
           <p style={{ color: "red" }}>
-            Password must have at least one uppercase letter
+            Password must have at least one uppercase letter, one digit, and one
+            special character
           </p>
         )}
 
         <button className="submit-btn" disabled={isDisabled}>
           Submit
         </button>
-        {buttonClicked && (
+
+        {isSubmissionSuccessful && (
           <Link to="/products" className="link">
             Go to Products
           </Link>
